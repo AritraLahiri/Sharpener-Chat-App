@@ -21,8 +21,12 @@ exports.signUpUser = (req, res, next) => {
       name,
       phone,
       password: hash,
-    });
-    res.json({ createdUser: true });
+    })
+      .then((response) => {
+        if (!response) res.json(response);
+        res.json({ success: true, createdUser: true });
+      })
+      .catch((e) => res.json({ success: false, message: e.message }));
   });
 };
 exports.logInUser = (req, res, next) => {
