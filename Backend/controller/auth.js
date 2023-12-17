@@ -3,7 +3,7 @@ const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
-// const secret = require("../util/secret");
+const secret = process.env.SECRET;
 // const { v4: uuidv4 } = require("uuid");
 
 exports.signUpUser = (req, res, next) => {
@@ -34,20 +34,16 @@ exports.logInUser = (req, res, next) => {
   const password = req.body.password;
   User.findOne({ where: { email } })
     .then((user) => {
-      if (!user)
-        res.status(404).json({ message: "User not found", success: false });
-
+      if (!user) {
+        res.json({ message: "User not found", success: false });
+      }
       bcrypt.compare(password, user.password, async (err, success) => {
-        if (err)
-          res
-            .status(404)
-            .json({ message: "Password didn't match", success: false });
-        else if (success)
-          res.json({
-            message: "Login success",
-            success: true,
-            token: generateAccessToken(user.id),
-          });
+        if (err) res.json({ message: "Password didn't match", success: false });
+        await res.json({
+          message: "Login success",
+          success: true,
+          token: generateAccessToken(user.id),
+        });
       });
     })
     .catch((err) => {
