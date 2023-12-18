@@ -34,10 +34,9 @@ function logInUser(e) {
       console.log(response);
       if (response.data.success) {
         localStorage.setItem("userId", response.data.token);
-        alert("Login Successfull :) ");
-        // window.location.replace(
-        //   "http://127.0.0.1:5500/Frontend/Expenses/index.html"
-        // );
+        window.location.replace(
+          "http://127.0.0.1:5500/Frontend/Dashboard/index.html"
+        );
       } else alert(response.data.message);
     })
     .catch((err) => console.log(err));
