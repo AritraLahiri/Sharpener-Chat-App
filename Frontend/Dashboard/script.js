@@ -2,7 +2,8 @@ const btnSendMessage = document.getElementById("btnSendMessage");
 const divMessage = document.getElementById("chat_div");
 btnSendMessage.addEventListener("click", sentMessageToAPI);
 const token = localStorage.getItem("userId");
-getMessagesFromAPI();
+
+setInterval(getMessagesFromAPI, 1000);
 
 function sentMessageToAPI() {
   const message = document.getElementById("message");
@@ -16,6 +17,7 @@ function sentMessageToAPI() {
         headers: { Authorization: token },
       })
       .then((response) => {
+        document.getElementById("message").value = "";
         console.log(response);
         if (response.data.success) {
           alert("message sent successfully");
@@ -35,6 +37,7 @@ function getMessagesFromAPI() {
       if (!response.data.success) {
         alert(response.data.message);
       } else {
+        divMessage.innerHTML = "";
         for (let data of response.data.data) {
           console.log(data.message);
           let message = data.message;
