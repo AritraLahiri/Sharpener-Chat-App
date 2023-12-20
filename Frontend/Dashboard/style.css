@@ -1,0 +1,7 @@
+.messageGroup {
+  border-radius: 8px;
+  background-color: rgba(221, 218, 218, 0.896);
+  width: 100%;
+  text-align: center;
+  padding: 8px;
+}
