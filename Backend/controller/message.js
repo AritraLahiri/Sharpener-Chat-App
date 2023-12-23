@@ -20,6 +20,7 @@ exports.sendMessage = (req, res, next) => {
 exports.getMessages = (req, res) => {
   const userId = req.user.id;
   const receiveMessageId = req.params.userId;
+  const lastMessageId = req.params.lastMesageId;
   if (!userId || !receiveMessageId)
     res.json({
       success: false,
@@ -28,6 +29,9 @@ exports.getMessages = (req, res) => {
   else {
     Message.findAll({
       where: {
+        id: {
+          [Op.gt]: lastMessageId,
+        },
         [Op.or]: [
           {
             userId,

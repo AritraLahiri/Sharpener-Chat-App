@@ -4,7 +4,7 @@ const userAuthMiddleware = require("../middleware/userAuth");
 const router = express.Router();
 router.post("/send", userAuthMiddleware, messageController.sendMessage);
 router.get(
-  "/receive/:userId",
+  "/receive/:userId/:lastMesageId",
   userAuthMiddleware,
   messageController.getMessages
 );
