@@ -5,9 +5,11 @@ const divSend = document.getElementById("div_send");
 btnSendMessage.addEventListener("click", sentMessageToAPI);
 const token = localStorage.getItem("userId");
 const receiverId = localStorage.getItem("receiverId");
+let lastMessageId =
+  localStorage.getItem("messageData") != null
+    ? JSON.parse(localStorage.getItem("messageData")).length - 1
+    : -1;
 getAllUsersFromAPI();
-
-// setInterval(getMessagesFromAPI, 1000);
 
 function sentMessageToAPI() {
   const message = document.getElementById("message");
@@ -33,30 +35,48 @@ function sentMessageToAPI() {
 }
 
 function getMessagesFromAPI() {
-  console.log(token);
-  console.log(receiverId);
+  divMessage.innerHTML = "";
+  if (localStorage.getItem("messageData") != undefined) {
+    const msgObjArr = JSON.parse(localStorage.getItem("messageData"));
+    for (let data of msgObjArr) {
+      messageBodyHTML(data);
+    }
+  }
+
   axios
-    .get(`http://localhost:3000/message/receive/${receiverId}`, {
-      headers: { Authorization: token },
-    })
+    .get(
+      `http://localhost:3000/message/receive/${receiverId}/${lastMessageId}`,
+      {
+        headers: { Authorization: token },
+      }
+    )
     .then((response) => {
-      console.log(response);
       if (!response.data.success) {
         alert(response.data.message);
       } else {
-        divMessage.innerHTML = "";
+        if (response.data.data.length > 0) {
+          let arr =
+            localStorage.getItem("messageData") != null
+              ? JSON.parse(localStorage.getItem("messageData"))
+              : [];
+          arr = arr.concat(response.data.data);
+          localStorage.setItem("messageData", JSON.stringify(arr));
+        }
         for (let data of response.data.data) {
-          console.log(data.message);
-          let message = data.message;
-          let userName = data.user.name;
-          let p = document.createElement("p");
-          p.classList.add("messageGroup");
-          p.appendChild(document.createTextNode(`${userName} : ${message}`));
-          divMessage.appendChild(p);
+          lastMessageId = data.id;
         }
       }
     })
     .catch((err) => console.log(err));
+}
+
+function messageBodyHTML(data) {
+  let message = data.message;
+  let userName = data.user.name;
+  let p = document.createElement("p");
+  p.classList.add("messageGroup");
+  p.appendChild(document.createTextNode(`${userName} : ${message}`));
+  divMessage.appendChild(p);
 }
 
 function getAllUsersFromAPI() {
@@ -85,7 +105,7 @@ function getAllUsersFromAPI() {
             document.getElementById("usr_lst").classList.toggle("d-none");
             divSend.classList.toggle("d-none");
             divMessage.classList.toggle("d-none");
-            //getMessagesFromAPI();
+            // getMessagesFromAPI();
             setInterval(getMessagesFromAPI, 1000);
           });
           divUser.appendChild(button);

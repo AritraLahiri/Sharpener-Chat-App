@@ -6,8 +6,13 @@ const bodyParser = require("body-parser");
 const sequelize = require("./util/database");
 const authRoute = require("./routes/auth");
 const messageRoute = require("./routes/message");
+const inviteRoute = require("./routes/invite");
+const groupRoute = require("./routes/group");
 const Message = require("./models/message");
 const User = require("./models/user");
+const Group = require("../Backend/models/group");
+const Request = require("../Backend/models/request");
+const GroupMessage = require("../Backend/models/groupMessage");
 
 const app = express();
 app.use(cors());
@@ -15,9 +20,22 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/auth", authRoute);
 app.use("/message", messageRoute);
+app.use("/message", messageRoute);
+app.use("/invite", inviteRoute);
+app.use("/group", groupRoute);
 app.use(express.static(path.join(__dirname, "public")));
 User.hasMany(Message);
 Message.belongsTo(User);
+User.hasMany(Group);
+Group.hasMany(User);
+User.hasMany(Request);
+Request.belongsTo(User);
+Group.hasMany(Request);
+Request.belongsTo(Group);
+User.hasMany(GroupMessage);
+GroupMessage.belongsTo(User);
+Group.hasMany(GroupMessage);
+GroupMessage.belongsTo(Group);
 sequelize
   .sync()
   .then((res) => {})
