@@ -33,6 +33,8 @@ function logInUser(e) {
     .then((response) => {
       console.log(response);
       if (response.data.success) {
+        if (localStorage.getItem("messageData") != null)
+          localStorage.removeItem("messageData");
         localStorage.setItem("userId", response.data.token);
         window.location.replace(
           "http://127.0.0.1:5500/Frontend/Dashboard/index.html"

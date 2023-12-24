@@ -1,7 +1,8 @@
 const Request = require("../models/request");
 const User = require("../models/user");
 const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
+const UserToGroup = require("../models/userToGroup");
+const Group = require("../models/group");
 
 exports.createInvite = (req, res, next) => {
   const userId = req.params.userId;
@@ -11,7 +12,6 @@ exports.createInvite = (req, res, next) => {
     userId,
     pending: true,
     requestFrom: req.user.id,
-    to,
   })
     .then((data) => {
       if (!data) res.json(response);
@@ -25,7 +25,7 @@ exports.getInvites = (req, res) => {
       userId: req.user.id,
       pending: true,
     },
-    include: User,
+    include: [User, Group],
   })
     .then((data) => {
       if (!data)
@@ -43,27 +43,60 @@ exports.getInvites = (req, res) => {
 
 exports.processInvite = (req, res) => {
   const userId = req.user.id;
-  const accept = req.params.value;
-  if (accept) {
-    User.findByPk(req.user.id).then((data) => {
-      if (!data)
-        res
-          .status(404)
-          .json({ success: false, message: "User group iD not UPDATED" });
-      User.update({ groupId: data.id }, { where: { userId: req.user.id } });
-    });
-  }
   Request.findByPk(userId).then((data) => {
     if (!data)
       res.status(404).json({ success: false, message: "Request not found" });
     Request.update({ pending: false }, { where: { userId } })
-      .then(() => {
-        // res.redirect(
-        //   `http://127.0.0.1:5500/Frontend/Auth/ResetPassword/index.html?id=${data.userId}`
-        // );
+      .then((data) => {
+        res.status(200).json({ success: true, message: "Success" });
       })
       .catch((err) => console.log(err));
   });
-  //   if (accept) {
-  //   }
+};
+
+exports.joinGroup = (req, res) => {
+  const userId = req.user.id;
+  const groupId = req.body.groupId;
+  UserToGroup.create({ userId, groupId })
+    .then((data) => {
+      if (!data)
+        res.status(404).json({ success: false, message: "Group not joined" });
+      res.status(200).json({ success: true, message: "User has joined Group" });
+    })
+    .catch((err) => res.json(err));
+
+  // Request.findByPk(userId).then((data) => {
+  //   if (!data)
+  //     res.status(404).json({ success: false, message: "Request not found" });
+  //   Request.update({ pending: false }, { where: { userId } })
+  //     .then((data) => {
+  //       if (!data)
+  //         res
+  //           .status(404)
+  //           .json({ success: false, message: "Request not updated" });
+  //       return Group.findByPk(id);
+  //     })
+  //     .then((data) => {
+  //       if (!data)
+  //         res.status(404).json({ success: false, message: "Group not found" });
+  //       return Group.findByPk(id);
+  //     })
+  //     .then((data) => {
+  //       if (!data)
+  //         res.status(404).json({ success: false, message: "Group not joined" });
+  //       return Group.update(
+  //         { userIds: data.userIds.push(req.user.id) },
+  //         { where: { id } }
+  //       );
+  //     })
+  //     .then((data) => {
+  //       if (!data)
+  //         res.status(404).json({ success: false, message: "Group not joined" });
+  //       re.status(200).json({
+  //         success: true,
+  //         message: "Group has been  joined",
+  //       });
+  //     })
+  //     .catch((err) => console.log(err));
+  // });
 };

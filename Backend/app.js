@@ -13,6 +13,7 @@ const User = require("./models/user");
 const Group = require("../Backend/models/group");
 const Request = require("../Backend/models/request");
 const GroupMessage = require("../Backend/models/groupMessage");
+const UserToGroup = require("../Backend/models/userToGroup");
 
 const app = express();
 app.use(cors());
@@ -26,8 +27,14 @@ app.use("/group", groupRoute);
 app.use(express.static(path.join(__dirname, "public")));
 User.hasMany(Message);
 Message.belongsTo(User);
-User.hasMany(Group);
-Group.hasMany(User);
+
+// User.hasMany(UserToGroup);
+// UserToGroup.belongsTo(User);
+Group.hasMany(UserToGroup);
+UserToGroup.belongsTo(Group);
+User.hasMany(UserToGroup);
+UserToGroup.belongsTo(User);
+
 User.hasMany(Request);
 Request.belongsTo(User);
 Group.hasMany(Request);

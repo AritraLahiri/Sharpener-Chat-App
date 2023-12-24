@@ -2,6 +2,7 @@ const btnSendMessage = document.getElementById("btnSendMessage");
 const divMessage = document.getElementById("chat_div");
 const divUser = document.getElementById("user_div");
 const divSend = document.getElementById("div_send");
+const btnGroup = document.getElementById("btnGroup");
 btnSendMessage.addEventListener("click", sentMessageToAPI);
 const token = localStorage.getItem("userId");
 const receiverId = localStorage.getItem("receiverId");
@@ -10,6 +11,10 @@ let lastMessageId =
     ? JSON.parse(localStorage.getItem("messageData")).length - 1
     : -1;
 getAllUsersFromAPI();
+
+btnGroup.addEventListener("click", () => {
+  window.location.replace("http://127.0.0.1:5500/Frontend/Group/index.html");
+});
 
 function sentMessageToAPI() {
   const message = document.getElementById("message");
