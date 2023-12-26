@@ -9,11 +9,15 @@ const UserToGroup = sequelize.define("user-to-group", {
     primaryKey: true,
   },
   userId: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
   groupId: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  isAdmin: {
+    type: Sequelize.BOOLEAN,
     allowNull: false,
   },
 });

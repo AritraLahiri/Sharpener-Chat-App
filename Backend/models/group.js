@@ -12,9 +12,5 @@ const Group = sequelize.define("group", {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  isAdmin: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-  },
 });
 module.exports = Group;

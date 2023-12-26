@@ -46,13 +46,12 @@ exports.createGroup = (req, res) => {
   const name = req.body.groupName;
   const userId = req.user.id;
   Group.create({
-    isAdmin: true,
     name,
   })
     .then((data) => {
       if (!data) res.json(response);
       else {
-        return UserToGroup.create({ userId, groupId: data.id });
+        return UserToGroup.create({ userId, groupId: data.id, isAdmin: true });
       }
     })
     .then((data) => {
@@ -105,4 +104,92 @@ exports.getAllPeopleInGroup = (req, res) => {
       data,
     });
   });
+};
+
+exports.removeFromGroup = (req, res) => {
+  const groupId = req.params.id;
+  UserToGroup.findOne({
+    where: {
+      groupId,
+      userId: req.user.id,
+    },
+  })
+    .then((userGroup) => {
+      console.log(userGroup);
+      if (!userGroup)
+        res.json({
+          success: false,
+          message: "Member not removed before delete from Group from API",
+        });
+      else
+        return userGroup.destroy({
+          where: {
+            groupId,
+            userId: req.user.id,
+          },
+        });
+    })
+    .then((data) => {
+      if (!data)
+        res.json({
+          success: false,
+          message: "Member not removed from Group from API",
+        });
+      else
+        res.status(200).json({
+          success: true,
+          message: "Member removed from the Group",
+        });
+    })
+    .catch((e) => res.json(e));
+};
+exports.toggleGroupAdmin = (req, res) => {
+  const groupId = req.params.id;
+  UserToGroup.findOne({
+    where: {
+      groupId,
+      userId: req.user.id,
+    },
+    include: User,
+  })
+    .then((userGroup) => {
+      if (!userGroup)
+        res.json({
+          success: false,
+          message: "Member admin not toggled from API",
+        });
+      return userGroup.update({ isAdmin: !userGroup.isAdmin });
+    })
+    .then((data) => {
+      if (!data)
+        res.json({
+          success: false,
+          message: "Member admin not toggled from API",
+        });
+      res.status(200).json({
+        success: true,
+        message: "Member admin toggled from API",
+      });
+    })
+    .catch((e) => res.json(e));
+};
+
+exports.checkIfUserIsAdmin = (req, res) => {
+  const userId = req.user.id;
+  const groupId = req.params.id;
+  UserToGroup.findOne({
+    where: {
+      userId,
+      groupId,
+    },
+  })
+    .then((data) => {
+      if (!data)
+        res.json({
+          success: false,
+          message: "User isAdmin not received from API",
+        });
+      else res.status(200).json({ success: true, isAdmin: data.isAdmin });
+    })
+    .catch((e) => res.json(e));
 };

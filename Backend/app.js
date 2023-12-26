@@ -28,12 +28,10 @@ app.use(express.static(path.join(__dirname, "public")));
 User.hasMany(Message);
 Message.belongsTo(User);
 
-// User.hasMany(UserToGroup);
-// UserToGroup.belongsTo(User);
-Group.hasMany(UserToGroup);
-UserToGroup.belongsTo(Group);
 User.hasMany(UserToGroup);
 UserToGroup.belongsTo(User);
+Group.hasMany(UserToGroup);
+UserToGroup.belongsTo(Group);
 
 User.hasMany(Request);
 Request.belongsTo(User);

@@ -33,10 +33,12 @@ exports.getInvites = (req, res) => {
           success: false,
           message: "Collected all invites from API",
         });
-      res.status(200).json({
-        success: true,
-        data,
-      });
+      else {
+        res.status(200).json({
+          success: true,
+          data,
+        });
+      }
     })
     .catch((e) => res.json(e.message));
 };
@@ -46,18 +48,19 @@ exports.processInvite = (req, res) => {
   Request.findByPk(userId).then((data) => {
     if (!data)
       res.status(404).json({ success: false, message: "Request not found" });
-    Request.update({ pending: false }, { where: { userId } })
-      .then((data) => {
-        res.status(200).json({ success: true, message: "Success" });
-      })
-      .catch((err) => console.log(err));
+    else
+      Request.update({ pending: false }, { where: { userId } })
+        .then((data) => {
+          res.status(200).json({ success: true, message: "Success" });
+        })
+        .catch((err) => console.log(err));
   });
 };
 
 exports.joinGroup = (req, res) => {
   const userId = req.user.id;
   const groupId = req.body.groupId;
-  UserToGroup.create({ userId, groupId })
+  UserToGroup.create({ userId, groupId, isAdmin: false })
     .then((data) => {
       if (!data)
         res.status(404).json({ success: false, message: "Group not joined" });

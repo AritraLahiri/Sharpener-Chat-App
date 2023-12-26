@@ -64,10 +64,11 @@ exports.getAllUsers = (req, res) => {
           success: false,
           message: "User list not fetched in API",
         });
-      res.status(200).json({
-        success: true,
-        data,
-      });
+      else
+        res.status(200).json({
+          success: true,
+          data,
+        });
     })
     .catch((e) => res.json(e.message));
 };
