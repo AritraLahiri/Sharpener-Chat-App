@@ -60,13 +60,40 @@ exports.processInvite = (req, res) => {
 exports.joinGroup = (req, res) => {
   const userId = req.user.id;
   const groupId = req.body.groupId;
-  UserToGroup.create({ userId, groupId, isAdmin: false })
-    .then((data) => {
-      if (!data)
-        res.status(404).json({ success: false, message: "Group not joined" });
-      res.status(200).json({ success: true, message: "User has joined Group" });
-    })
-    .catch((err) => res.json(err));
+  Request.findByPk(userId).then((data) => {
+    if (!data)
+      res.status(404).json({ success: false, message: "Request not found" });
+    else
+      Request.update({ pending: false }, { where: { userId } })
+        .then((data) => {
+          if (!data)
+            res.json({ success: false, message: "Request not processed" });
+          else {
+            UserToGroup.create({ userId, groupId, isAdmin: false })
+              .then((data) => {
+                if (!data)
+                  res
+                    .status(404)
+                    .json({ success: false, message: "Group not joined" });
+                this.processInvite;
+                res
+                  .status(200)
+                  .json({ success: true, message: "User has joined Group" });
+              })
+              .catch((err) => res.json(err));
+          }
+        })
+        .catch((err) => console.log(err));
+  });
+
+  // UserToGroup.create({ userId, groupId, isAdmin: false })
+  //   .then((data) => {
+  //     if (!data)
+  //       res.status(404).json({ success: false, message: "Group not joined" });
+  //     this.processInvite
+  //     res.status(200).json({ success: true, message: "User has joined Group" });
+  //   })
+  //   .catch((err) => res.json(err));
 
   // Request.findByPk(userId).then((data) => {
   //   if (!data)

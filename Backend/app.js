@@ -1,4 +1,5 @@
 const path = require("path");
+const http = require("http");
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -14,9 +15,10 @@ const Group = require("../Backend/models/group");
 const Request = require("../Backend/models/request");
 const GroupMessage = require("../Backend/models/groupMessage");
 const UserToGroup = require("../Backend/models/userToGroup");
-
 const app = express();
+const server = http.createServer(app);
 app.use(cors());
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/auth", authRoute);
@@ -46,4 +48,16 @@ sequelize
   .then((res) => {})
   .catch((err) => console.log(err));
 
-app.listen(3000);
+server.listen(3000, console.log(`Server ready and running`));
+
+// const { Server } = require("socket.io");
+// const io = new Server(server);
+// global.io = io;
+// //Sockets will be handle here
+// io.on("connection", (client) => {
+//   client.on("message", (message) => {
+//     console.log(message);
+//     io.emit("message", message);
+//   });
+//   console.log(`A new user has connected`);
+// });

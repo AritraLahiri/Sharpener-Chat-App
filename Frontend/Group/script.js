@@ -11,10 +11,12 @@ const divInviteRequest = document.getElementById("friend_req_div");
 const divSend = document.getElementById("div_send");
 const btnSendMessage = document.getElementById("btnSendMessage");
 const divMessage = document.getElementById("chat_div");
+let isAdmin = false;
 
 getAllGroupsFromAPI();
 getAllUsersFromAPI();
 getAllPendingRequestFromAPI();
+isUserAdmin();
 
 btnMembers.addEventListener("click", getAllMembersFromAPI);
 btnSendMessage.addEventListener("click", sentGroupMessageToAPI);
@@ -255,8 +257,53 @@ function getAllMembersFromAPI() {
           let li = document.createElement("li");
           li.classList.add("list-group-item");
           li.appendChild(document.createTextNode(`${userName} : ${userEmail}`));
+          if (isAdmin) {
+            let button = document.createElement("button");
+            button.classList.add("btn");
+            button.classList.add("btn-sm");
+            button.classList.add("btn-danger");
+            button.appendChild(document.createTextNode("Remove"));
+            button.addEventListener("click", () => {
+              axios
+                .post(
+                  `http://localhost:3000/group/leave/${localStorage.getItem(
+                    "groupId"
+                  )}`,
+                  {},
+                  {
+                    headers: { Authorization: token },
+                  }
+                )
+                .then((response) => {
+                  console.log(response);
+                  if (response.data.success) {
+                    //getAllMembersFromAPI();
+                  }
+                })
+                .catch((e) => alert("SOMETHING WENT WRONG"));
+            });
+            li.appendChild(button);
+          }
           divMembers.appendChild(li);
         }
+      }
+    })
+    .catch((err) => console.log(err));
+}
+
+function isUserAdmin() {
+  const msgObj = {};
+  axios
+    .post(
+      `http://localhost:3000/group/isAdmin/${localStorage.getItem("groupId")}`,
+      msgObj,
+      {
+        headers: { Authorization: token },
+      }
+    )
+    .then((response) => {
+      if (response.data.success) {
+        isAdmin = response.data.isAdmin;
       }
     })
     .catch((err) => console.log(err));

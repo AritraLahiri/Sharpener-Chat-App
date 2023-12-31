@@ -1,3 +1,9 @@
+var options = {
+  rememberUpgrade: true,
+  transports: ["websocket"],
+  secure: true,
+  rejectUnauthorized: false,
+};
 const btnSendMessage = document.getElementById("btnSendMessage");
 const divMessage = document.getElementById("chat_div");
 const divUser = document.getElementById("user_div");
@@ -18,12 +24,16 @@ btnGroup.addEventListener("click", () => {
 
 function sentMessageToAPI() {
   const message = document.getElementById("message");
+  var socket = io.connect("http://localhost:3000", options);
+
   if (message != null && token != null) {
     const msgObj = {
       message: message.value,
       from: token,
       to: localStorage.getItem("receiverId"),
     };
+    socket.on("message", (message) => console.log(message));
+    socket.emit("message", message.value);
     axios
       .post("http://localhost:3000/message/send", msgObj, {
         headers: { Authorization: token },
@@ -90,7 +100,6 @@ function getAllUsersFromAPI() {
       headers: { Authorization: token },
     })
     .then((response) => {
-      console.log(response);
       if (!response.data.success) {
         alert(response.data.message);
       } else {
