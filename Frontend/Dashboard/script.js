@@ -5,6 +5,7 @@ var options = {
   rejectUnauthorized: false,
 };
 const btnSendMessage = document.getElementById("btnSendMessage");
+let newMessageCount = 0;
 const divMessage = document.getElementById("chat_div");
 const divUser = document.getElementById("user_div");
 const divSend = document.getElementById("div_send");
@@ -32,60 +33,33 @@ function sentMessageToAPI() {
       from: token,
       to: localStorage.getItem("receiverId"),
     };
-    socket.on("message", (message) => console.log(message));
-    socket.emit("message", message.value);
-    axios
-      .post("http://localhost:3000/message/send", msgObj, {
-        headers: { Authorization: token },
-      })
-      .then((response) => {
-        document.getElementById("message").value = "";
-        console.log(response);
-        if (response.data.success) {
-          alert("message sent successfully");
-        } else alert(response.data.message);
-      })
-      .catch((err) => console.log(err));
+    socket.emit("message", {
+      to: localStorage.getItem("receiverId"),
+      message: message.value,
+      userId: token,
+    });
+    document.getElementById("message").value = "";
+    alert("Message Sent");
   }
 }
 
 function getMessagesFromAPI() {
-  divMessage.innerHTML = "";
-  if (localStorage.getItem("messageData") != undefined) {
-    const msgObjArr = JSON.parse(localStorage.getItem("messageData"));
-    for (let data of msgObjArr) {
-      messageBodyHTML(data);
+  options.query = { to: localStorage.getItem("receiverId"), userId: token };
+  var socket = io.connect("http://localhost:3000", options);
+  socket.on("message", (response) => {
+    const msgObjArr = response;
+    if (msgObjArr != null && newMessageCount < msgObjArr.length) {
+      divMessage.innerHTML = "";
+      newMessageCount = msgObjArr.length;
+      for (let data of msgObjArr) {
+        messageBodyHTML(data);
+      }
     }
-  }
-
-  axios
-    .get(
-      `http://localhost:3000/message/receive/${receiverId}/${lastMessageId}`,
-      {
-        headers: { Authorization: token },
-      }
-    )
-    .then((response) => {
-      if (!response.data.success) {
-        alert(response.data.message);
-      } else {
-        if (response.data.data.length > 0) {
-          let arr =
-            localStorage.getItem("messageData") != null
-              ? JSON.parse(localStorage.getItem("messageData"))
-              : [];
-          arr = arr.concat(response.data.data);
-          localStorage.setItem("messageData", JSON.stringify(arr));
-        }
-        for (let data of response.data.data) {
-          lastMessageId = data.id;
-        }
-      }
-    })
-    .catch((err) => console.log(err));
+  });
 }
 
 function messageBodyHTML(data) {
+  console.log(data);
   let message = data.message;
   let userName = data.user.name;
   let p = document.createElement("p");
@@ -119,7 +93,7 @@ function getAllUsersFromAPI() {
             document.getElementById("usr_lst").classList.toggle("d-none");
             divSend.classList.toggle("d-none");
             divMessage.classList.toggle("d-none");
-            // getMessagesFromAPI();
+            //getMessagesFromAPI();
             setInterval(getMessagesFromAPI, 1000);
           });
           divUser.appendChild(button);

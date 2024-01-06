@@ -12,6 +12,12 @@ const divSend = document.getElementById("div_send");
 const btnSendMessage = document.getElementById("btnSendMessage");
 const divMessage = document.getElementById("chat_div");
 let isAdmin = false;
+var options = {
+  rememberUpgrade: true,
+  transports: ["websocket"],
+  secure: true,
+  rejectUnauthorized: false,
+};
 
 getAllGroupsFromAPI();
 getAllUsersFromAPI();
@@ -45,48 +51,65 @@ btnCreateGroup.addEventListener("click", () => {
 
 function sentGroupMessageToAPI() {
   const message = document.getElementById("message");
+  var socket = io.connect("http://localhost:3000", options);
   if (message != null && token != null) {
     const msgObj = {
       message: message.value,
     };
-    axios
-      .post(
-        `http://localhost:3000/group/send/${localStorage.getItem("groupId")}`,
-        msgObj,
-        {
-          headers: { Authorization: token },
-        }
-      )
-      .then((response) => {
-        document.getElementById("message").value = "";
-        console.log(response);
-        if (response.data.success) {
-          alert("message sent successfully");
-        } else alert(response.data.message);
-      })
-      .catch((err) => console.log(err));
+    socket.emit("messageGroup", {
+      userId: token,
+      message: message.value,
+      groupId: localStorage.getItem("groupId"),
+    });
+    // axios
+    //   .post(
+    //     `http://localhost:3000/group/send/${localStorage.getItem("groupId")}`,
+    //     msgObj,
+    //     {
+    //       headers: { Authorization: token },
+    //     }
+    //   )
+    //   .then((response) => {
+    //     document.getElementById("message").value = "";
+    //     console.log(response);
+    //     if (response.data.success) {
+    //       alert("message sent successfully");
+    //     } else alert(response.data.message);
+    //   })
+    //   .catch((err) => console.log(err));
   }
 }
 
 function getMessagesFromAPI() {
-  axios
-    .get(
-      `http://localhost:3000/group/receive/${localStorage.getItem("groupId")}`,
-      {
-        headers: { Authorization: token },
+  options.query = { groupId: localStorage.getItem("groupId"), userId: token };
+  var socket = io.connect("http://localhost:3000", options);
+  socket.on("messageGroup", (response) => {
+    const msgObjArr = response;
+    if (msgObjArr != null) {
+      divMessage.innerHTML = "";
+      for (let data of msgObjArr) {
+        messageBodyHTML(data);
       }
-    )
-    .then((response) => {
-      if (!response.data.success) {
-        alert(response.data.message);
-      } else {
-        divMessage.innerHTML = "";
-        for (let data of response.data.data) {
-          messageBodyHTML(data);
-        }
-      }
-    })
-    .catch((err) => console.log(err));
+    }
+  });
+  // axios
+  //   .get(
+  //     `http://localhost:3000/group/receive/${localStorage.getItem("groupId")}`,
+  //     {
+  //       headers: { Authorization: token },
+  //     }
+  //   )
+  //   .then((response) => {
+  //     if (!response.data.success) {
+  //       alert(response.data.message);
+  //     } else {
+  //       divMessage.innerHTML = "";
+  //       for (let data of response.data.data) {
+  //         messageBodyHTML(data);
+  //       }
+  //     }
+  //   })
+  //   .catch((err) => console.log(err));
 }
 
 function messageBodyHTML(data) {
