@@ -1,4 +1,5 @@
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const http = require("http");
 require("dotenv").config();
 const express = require("express");
@@ -16,8 +17,87 @@ const Request = require("../Backend/models/request");
 const GroupMessage = require("../Backend/models/groupMessage");
 const UserToGroup = require("../Backend/models/userToGroup");
 const app = express();
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+global.io = io;
 app.use(cors());
+
+//Sockets for receiving messages will be handle here
+io.on("connection", (client) => {
+  const userId = jwt.verify(
+    client.handshake.query["userId"],
+    process.env.SECRET
+  ).userId;
+  const to = client.handshake.query["to"];
+  console.log(userId + " " + to);
+  Message.findAll({
+    where: {
+      [Op.or]: [
+        {
+          [Op.and]: [
+            {
+              userId: userId,
+            },
+            {
+              to: to,
+            },
+          ],
+        },
+        {
+          [Op.and]: [
+            {
+              userId: to,
+            },
+            {
+              to: userId,
+            },
+          ],
+        },
+      ],
+      // [Op.and]: [
+      //   {
+      //     userId: userId,
+      //   },
+      //   {
+      //     to: to,
+      //   },
+      // ],
+      // [Op.and]: [
+      //   {
+      //     userId: to,
+      //   },
+      //   {
+      //     to: userId,
+      //   },
+      // ],
+    },
+    include: User,
+  })
+    .then((data) => {
+      if (!data) console.log(data);
+      if (data.length > 0) {
+        io.emit("message", data);
+      }
+    })
+    .catch((e) => console.log(e));
+  console.log(`A new user has connected`);
+});
+//Sockets for sending messages will be handle here
+io.on("connection", (client) => {
+  client.on("message", (data) => {
+    const userId = jwt.verify(data.userId, process.env.SECRET).userId;
+    const to = data.to;
+    Message.create({
+      message: data.message,
+      userId,
+      to,
+    });
+  });
+  console.log(`A new user has connected`);
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -49,15 +129,3 @@ sequelize
   .catch((err) => console.log(err));
 
 server.listen(3000, console.log(`Server ready and running`));
-
-// const { Server } = require("socket.io");
-// const io = new Server(server);
-// global.io = io;
-// //Sockets will be handle here
-// io.on("connection", (client) => {
-//   client.on("message", (message) => {
-//     console.log(message);
-//     io.emit("message", message);
-//   });
-//   console.log(`A new user has connected`);
-// });
