@@ -99,6 +99,40 @@ io.on("connection", (client) => {
   console.log(`A new user has connected`);
 });
 
+//Send Group Message to People
+io.on("connection", (client) => {
+  client.on("messageGroup", (data) => {
+    console.log(data);
+    const userId = jwt.verify(data.userId, process.env.SECRET).userId;
+    const message = data.message;
+    const groupId = data.groupId;
+    GroupMessage.create({
+      message,
+      userId,
+      groupId,
+    });
+  });
+  console.log(`A new user has connected`);
+});
+//Receive Group Message
+io.on("connection", (client) => {
+  const groupId = client.handshake.query["groupId"];
+  GroupMessage.findAll({
+    where: {
+      groupId,
+    },
+    include: User,
+  })
+    .then((data) => {
+      if (!data) console.log(data);
+      if (data.length > 0) {
+        io.emit("messageGroup", data);
+      }
+    })
+    .catch((e) => console.log(e));
+  console.log(`A new user has connected`);
+});
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/auth", authRoute);
